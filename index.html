@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unearthing Royal Recipes: An Interactive History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Royal Parchment -->
+    <!-- Application Structure Plan: The SPA is designed around a central tab-based navigation, allowing users to directly explore each of the three dishes (Korma, Galouti, Zarda) or the foundational concepts of Awadhi cuisine. This non-linear structure is more user-friendly than a long-scrolling report. Each dish section is a self-contained story, using a two-column layout to present quick facts alongside detailed narratives. The key interaction is the Galouti Kabab legend-switcher, which transforms a static table from the report into a dynamic comparison. This interactive, thematic approach was chosen to enhance engagement and comprehension, allowing users to compare, contrast, and dive deep into the content that interests them most, rather than being forced through a linear narrative. The 'Image Gallery' tab has been removed as per user request. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Competing legends of the Galouti Kabab's invention. Goal: Compare. Viz/Method: Interactive button-based content switcher. Interaction: User clicks a button for each legend ('The Generous Host' vs. 'The One-Armed Chef') to dynamically update the displayed text about the Nawab, chef, and story. Justification: This is far more engaging than a static table and encourages active user participation. Library: Vanilla JS and HTML/CSS.
+        - Report Info: Evolution of dishes from royal to public. Goal: Show Change. Viz/Method: Simple horizontal process flow diagram. Interaction: Static visual aid. Justification: Clearly illustrates the journey of each dish without complex charts, using styled HTML and Unicode arrows. Library: HTML/CSS with Tailwind.
+        - Report Info: Social status of each dish. Goal: Compare. Viz/Method: A horizontal bar chart. Interaction: Hovering over bars shows tooltips with details. Justification: Provides a quick visual summary of the dishes' primary audience (Royal vs. Public), making the information easily digestible. Library: Chart.js with Canvas.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #FDF6E3;
+            color: #583E26;
+        }
+        h1, h2, h3, .font-lora {
+            font-family: 'Lora', serif;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active {
+            border-bottom-color: #A44A3F;
+            color: #A44A3F;
+            font-weight: 600;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .legend-btn {
+            transition: all 0.3s ease;
+        }
+        .legend-btn.active {
+            background-color: #A44A3F !important;
+            color: #FDF6E3 !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px;
+            max-height: 300px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 300px;
+                max-height: 350px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <header class="text-center mb-10 md:mb-16">
+            <h1 class="text-4xl md:text-6xl font-bold text-[#A44A3F] font-lora">Unearthing Royal Recipes</h1>
+            <p class="mt-4 text-lg md:text-xl max-w-3xl mx-auto text-[#583E26]">An interactive journey into the origins of Awadh's most iconic dishes, born from the culture of 'nafasat' (refinement) and the patronage of Nawabs.</p>
+        </header>
+
+        <nav class="mb-8 md:mb-12 border-b border-[#C0A062]/50">
+            <ul class="flex flex-wrap justify-center -mb-px text-lg font-medium text-center">
+                <li class="mr-2">
+                    <button class="tab-btn inline-block p-4" data-tab="intro">The Awadhi Kitchen</button>
+                </li>
+                <li class="mr-2">
+                    <button class="tab-btn inline-block p-4" data-tab="korma">Chicken Korma</button>
+                </li>
+                <li class="mr-2">
+                    <button class="tab-btn inline-block p-4" data-tab="galouti">Galouti Kabab</button>
+                </li>
+                <li>
+                    <button class="tab-btn inline-block p-4" data-tab="zarda">Zarda</button>
+                </li>
+            </ul>
+        </nav>
+
+        <main>
+            <div id="intro" class="content-section">
+                <div class="bg-[#FBF1D3] p-6 md:p-8 rounded-xl shadow-md fade-in">
+                    <h2 class="text-3xl font-bold font-lora text-[#A44A3F] mb-4">The Culinary Tapestry of Awadh</h2>
+                    <p class="mb-4 text-base md:text-lg">This part of the page tells you about the history and culture of Awadhi food. You'll learn about the main ideas, cooking methods, and how the royal rulers (Nawabs) helped create these famous dishes. Understanding these things will help you enjoy the stories behind Korma, Galouti Kabab, and Zarda even more.</p>
+                    <div class="grid md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2">A Culture of Refinement</h3>
+                            <p>Awadhi culture was all about being 'nafasat' (refined) and 'nazakat' (graceful). This wasn't just for art or poems; it was the heart of their cooking. Chefs had to make dishes that tasted delicate, looked beautiful, and smelled wonderful, making every meal a special event.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2">The Art of 'Dum Pukht'</h3>
+                            <p>The main cooking style in Awadh is 'dum,' which means cooking slowly in a sealed pot. This method was first used by Mughal armies for practical reasons, but it was perfected in royal kitchens. It made meats very tender and mixed flavors deeply, creating rich dishes that were surprisingly light and fragrant.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2">Royal Patronage & Competition</h3>
+                            <p>The Nawabs loved food very much. They held big cooking contests, offering fame and money to chefs who could invent the most special and tasty dishes. This strong, creative competition was where many Awadhi foods were born.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2">Guarded Secrets</h3>
+                            <p>Recipes were kept very secret, passed down only within families of 'bawarchis' (chefs). This led to many unique dishes, but it also meant that some dishes were lost forever if a chef didn't pass on their knowledge. This makes the recipes we still have even more precious.</p>
+                        </div>
+                    </div>
+                     <div class="mt-8">
+                        <h3 class="text-2xl font-bold font-lora text-center text-[#A44A3F] mb-4">Social Reach of the Dishes</h3>
+                        <div class="chart-container">
+                            <canvas id="socialReachChart"></canvas>
+                        </div>
+                        <p class="text-center text-sm mt-2 text-[#583E26]/80">This chart shows how much each dish was meant for royalty/rich people versus how much it became popular with everyone.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="korma" class="content-section">
+                <div class="bg-[#FBF1D3] p-6 md:p-8 rounded-xl shadow-md fade-in">
+                    <h2 class="text-3xl font-bold font-lora text-[#A44A3F] mb-4">Chicken Korma: A Royal Legacy</h2>
+                    <p class="mb-6 text-base md:text-lg">Learn about Korma, a dish that reminds us of the grand Mughal Empire. This section follows its path from the emperors' kitchens to being a favorite curry all over the world. It highlights the main events and features that make this creamy, flavorful dish so special.</p>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1 space-y-4">
+                            <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Name Origin</h3>
+                                <p>Comes from the Turkish word "Qavirma," meaning to fry or braise.</p>
+                            </div>
+                            <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Key Ingredients</h3>
+                                <p>Yogurt, ground nuts (almonds, cashews), and a mix of fragrant spices like cardamom, cinnamon, and rose petals.</p>
+                            </div>
+                             <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Defining Moment</h3>
+                                <p>A white Korma was served when the Taj Mahal was opened for Emperor Shah Jahan, showing its high royal status.</p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2">The Story</h3>
+                            <p class="mb-4">Korma's story starts in the 16th-century royal courts of the Mughals. It was a dish made to show off wealth and power, often using expensive ingredients like saffron and edible silver leaf. Making it was a complex art, involving quickly cooking meat in clarified butter (ghee) and then slow-cooking it perfectly. The Awadhi style made it even better, creating a thick, creamy, and rich gravy.</p>
+                            <p class="mb-4">There's a story about Nawab Jafar Hussain asking a cook, "What do you cook? Korma. And besides korma?" This shows how important Korma was; mastering it was a sign of a true royal chef.</p>
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2 mt-4">Evolution: From Palace to Plate</h3>
+                            <div class="flex items-center space-x-2 md:space-x-4 text-sm md:text-base">
+                                <div class="text-center p-2 bg-[#EADDC5] rounded-lg"><strong>Mughal Courts</strong><br>(16th Century)</div>
+                                <div class="text-2xl text-[#C0A062] font-light">&rarr;</div>
+                                <div class="text-center p-2 bg-[#EADDC5] rounded-lg"><strong>Awadhi Refinement</strong><br>(18th Century)</div>
+                                <div class="text-2xl text-[#C0A062] font-light">&rarr;</div>
+                                <div class="text-center p-2 bg-[#EADDC5] rounded-lg"><strong>Global Favorite</strong><br>(Today)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="galouti" class="content-section">
+                <div class="bg-[#FBF1D3] p-6 md:p-8 rounded-xl shadow-md fade-in">
+                    <h2 class="text-3xl font-bold font-lora text-[#A44A3F] mb-4">Galouti Kabab: The Melt-in-the-Mouth Marvel</h2>
+                     <p class="mb-6 text-base md:text-lg">The Galouti Kabab was created because a Nawab (royal ruler) needed a kebab so soft he could eat it without teeth. This section shares the interesting, debated stories of how it began. Use the buttons below to learn about the two main legends and see how clever chefs solved a royal food problem.</p>
+                    
+                    <div class="text-center mb-6">
+                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                            <button type="button" class="legend-btn active px-4 py-2 text-sm font-medium text-[#583E26] bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100" data-legend="asad">
+                                Legend 1: The Generous Host
+                            </button>
+                            <button type="button" class="legend-btn px-4 py-2 text-sm font-medium text-[#583E26] bg-white border-t border-b border-gray-200 hover:bg-gray-100" data-legend="wajid">
+                                Legend 2: The One-Armed Chef
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1 space-y-4">
+                            <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Name Origin</h3>
+                                <p>'Galouti' or 'Gilawat' means "soft" or "melt-in-the-mouth."</p>
+                            </div>
+                            <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Key Ingredients</h3>
+                                <p>Very finely ground meat, raw papaya (to make it tender), and a secret mix of over 150 spices, including sandalwood and rosebuds.</p>
+                            </div>
+                            <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Evolution</h3>
+                                <p>Changed from a special royal dish to a world-famous street food, thanks to the Tunday Kababi family.</p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <div id="legend-content">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="zarda" class="content-section">
+                <div class="bg-[#FBF1D3] p-6 md:p-8 rounded-xl shadow-md fade-in">
+                    <h2 class="text-3xl font-bold font-lora text-[#A44A3F] mb-4">Zarda: The Golden Sweet of Celebrations</h2>
+                    <p class="mb-6 text-base md:text-lg">Zarda, or sweet rice, is a dish that means joy and special events. This section explores its Persian beginnings, its history in the Mughal court, and how it became a beloved dessert for everyone across India.</p>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1 space-y-4">
+                            <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Name Origin</h3>
+                                <p>From the Persian word "Zard" (زرد), meaning "yellow," because of its golden color from saffron.</p>
+                            </div>
+                            <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Key Ingredients</h3>
+                                <p>Basmati rice, sugar, clarified butter (ghee), milk, saffron, and a topping of nuts and raisins.</p>
+                            </div>
+                             <div class="border-l-4 border-[#C0A062] pl-4">
+                                <h3 class="font-semibold text-lg">Historical Proof</h3>
+                                <p>A recipe for "Zard Birinj" is found in the 'Ain-I-Akbari,' a document from Emperor Akbar's court in the 16th century.</p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2">The Story</h3>
+                            <p class="mb-4">Zarda was a common dish at Mughal and Nawabi celebrations. Its golden color made it a symbol of good luck and happiness. Nawab Wajid Ali Shah loved it especially during spring picnics, where he and his court would wear yellow clothes to match the dish and the season, floating on decorated boats.</p>
+                            <p class="mb-4">Even though it started in royal, mostly Muslim, settings, Zarda became truly Indian. Now, it's a main dish at Hindu festivals like Diwali, Sikh celebrations, and even offered at Sufi shrines. This shows how well it blended into different cultures. It's not just a dish from history; it's a sweet part of many Indian traditions today.</p>
+                            <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2 mt-4">Role in Society: A Dish of Unity</h3>
+                             <div class="flex items-center space-x-2 md:space-x-4 text-sm md:text-base">
+                                <div class="text-center p-2 bg-[#EADDC5] rounded-lg"><strong>Royal Feasts</strong></div>
+                                <div class="text-2xl text-[#C0A062] font-light">&rarr;</div>
+                                <div class="text-center p-2 bg-[#EADDC5] rounded-lg"><strong>Religious Festivals</strong></div>
+                                <div class="text-2xl text-[#C0A062] font-light">&rarr;</div>
+                                <div class="text-center p-2 bg-[#EADDC5] rounded-lg"><strong>Everyday Pulao</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.content-section');
+            const legendBtns = document.querySelectorAll('.legend-btn');
+            const legendContentEl = document.getElementById('legend-content');
+
+            const legendData = {
+                asad: {
+                    title: "Legend 1: The Generous Host",
+                    nawab: "Nawab Asad-ud-Daula (1748-1797)",
+                    chef: "Haji Mohammad Fakr-e-Alam Saheb",
+                    story: "According to this story, Nawab Asad-ud-Daula, who was known for being very generous and loving food, grew old and lost his teeth. But he still loved kebabs. He challenged his chefs to make a kebab so soft he could enjoy it without chewing. The brilliant chef Haji Mohammad Fakr-e-Alam Saheb created the Galouti by grinding the finest lamb into a paste and using tenderizers like raw papaya with a secret mix of spices. This kebab was not just for him; during a big famine, the Nawab even served these kebabs to the workers building the Bada Imambara, showing that even royal food could be shared with common people during hard times."
+                },
+                wajid: {
+                    title: "Legend 2: The One-Armed Chef",
+                    nawab: "Nawab Wajid Ali Shah (Last Nawab of Awadh)",
+                    chef: "Haji Murad Ali ('Tunday')",
+                    story: "The more famous story gives credit to the last Nawab of Awadh, Wajid Ali Shah, who also had no teeth in his later years. He loved arts and food, so he held a 'kebab making contest' with a big prize for the softest, most delicious kebab. A one-armed cooking master, Haji Murad Ali, won the contest. His missing arm gave him the nickname 'Tunday' (meaning one-armed), and his creation became the famous 'Tunday Ke Kebab'. He is known for making the kebab perfectly soft and melt-in-the-mouth. His family opened the well-known Tunday Kababi shop in 1905, making the dish a famous part of Lucknow."
+                }
+            };
+
+            function updateLegendContent(legendKey) {
+                const data = legendData[legendKey];
+                if (legendContentEl && data) {
+                    legendContentEl.innerHTML = `
+                        <div class="fade-in">
+                             <h3 class="text-xl font-semibold font-lora text-[#C0A062] mb-2">${data.title}</h3>
+                            <p class="mb-4"><strong>Associated Nawab:</strong> ${data.nawab}</p>
+                            <p class="mb-4"><strong>Credited Chef:</strong> ${data.chef}</p>
+                            <p>${data.story}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function activateTab(tabId) {
+                tabs.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === tabId);
+                });
+                contents.forEach(content => {
+                    content.classList.toggle('active', content.id === tabId);
+                });
+            }
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    activateTab(tab.dataset.tab);
+                });
+            });
+
+            legendBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    legendBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateLegendContent(btn.dataset.legend);
+                });
+            });
+
+            // Initialize the first tab and legend content
+            activateTab('intro');
+            updateLegendContent('asad');
+
+            const socialReachCtx = document.getElementById('socialReachChart').getContext('2d');
+            const socialReachChart = new Chart(socialReachCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Chicken Korma', 'Galouti Kabab', 'Zarda'],
+                    datasets: [{
+                        label: 'Royal / Exclusive',
+                        data: [95, 100, 80],
+                        backgroundColor: '#C0A062',
+                        borderColor: '#C0A062',
+                        borderWidth: 1
+                    }, {
+                        label: 'Public / Widespread',
+                        data: [95, 90, 100],
+                        backgroundColor: '#A44A3F',
+                        borderColor: '#A44A3F',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: false, 
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%'
+                                }
+                            },
+                             grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            stacked: false, 
+                             grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                       label += context.parsed.x + '% reach';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
